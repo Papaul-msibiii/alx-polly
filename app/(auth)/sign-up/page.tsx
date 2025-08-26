@@ -9,16 +9,18 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -30,11 +32,12 @@ function SignUpPage() {
     });
 
     if (error) {
-      setMessage(error.message);
+      toast.error(error.message);
     } else {
-      setMessage("Check your email for the confirmation link.");
+      toast.success("Check your email for the confirmation link.");
       router.push("/sign-in");
     }
+    setLoading(false);
   };
 
   return (
@@ -57,8 +60,9 @@ function SignUpPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
-            <Button type="submit" className="w-full">Create account</Button>
-            {message && <p className="text-sm text-neutral-500">{message}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating account..." : "Create account"}
+            </Button>
             <p className="text-sm text-neutral-500">
               Already have an account? <Link className="underline" href="/sign-in">Sign in</Link>
             </p>
